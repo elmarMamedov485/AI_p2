@@ -29,16 +29,14 @@ class nQueens():
         return [val for val, _ in (sorted(val_conflict.items(), key = lambda item: item[1]))]
 
     def select_var(self):
-        min_len = float('inf')
-        var = None
-
-        for i in range(1, self.n+1):
-            if i not in self.assignment:
-                if len(self.domains[i]) < min_len:
-                    min_len = len(self.domains[i])
-                    var = i
+        unassigned = [i for i in range(1, self.n+1) if i not in self.assignment]
+        if not unassigned:
+            return None
         
-        return var
+        min_domain_size = min(len(self.domains[v]) for v in unassigned)
+        candidates = [v for v in unassigned if len(self.domains[v]) == min_domain_size]
+
+        return candidates[0]
     
     def assignment_constistent(self, var, val):
         for as_var, as_val in self.assignment.items():
@@ -94,7 +92,7 @@ class nQueens():
 
         for value in self.lcv(variable):
             if value in self.domains[variable] and self.assignment_constistent(variable, value):
-                old_assignment = {var: val for var, val in self.assignment.items()}
+                old_assignment = self.assignment.copy()
                 old_domains = {var: vals[:] for var, vals in self.domains.items()}
                 self.assignment[variable] = value
                 self.domains[variable] = [value]
@@ -106,20 +104,20 @@ class nQueens():
 
                     result = self.backtrack()
 
-                    if result:
-                        self.domains = {var: val[:] for var, val in old_domains.items()}
-                        self.assignment =  {var: val for var, val in old_assignment.items()}
+                    if result:         
                         return result 
-                self.domains = {var: val[:] for var, val in old_domains.items()}
-                self.assignment =  {var: val for var, val in old_assignment.items()}
+                self.domains = old_domains
+                self.assignment =  old_assignment
         return False                           
 
 
         
     @staticmethod
     def constraints_check(variable, neighb, val, val_neighb):
+        if(variable == neighb):
+            return True
         if(val == val_neighb):
             return False
-        elif(abs(variable-neighb) == abs(val - val_neighb)):
+        if(abs(variable-neighb) == abs(val - val_neighb)):
             return False
         return True

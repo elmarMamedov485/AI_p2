@@ -1,7 +1,7 @@
 from solver import nQueens
 import time
 
-problem = nQueens(1000)
+problem = nQueens(30)
 start = time.time()
 print(problem.backtracking_search())
 end = time.time()
