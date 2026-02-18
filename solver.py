@@ -29,14 +29,16 @@ class nQueens():
         return [val for val, _ in (sorted(val_conflict.items(), key = lambda item: item[1]))]
 
     def select_var(self):
-        unassigned = [i for i in range(1, self.n+1) if i not in self.assignment]
-        if not unassigned:
-            return None
-        
-        min_domain_size = min(len(self.domains[v]) for v in unassigned)
-        candidates = [v for v in unassigned if len(self.domains[v]) == min_domain_size]
+        min = float('inf')
+        var = None
 
-        return candidates[0]
+        for i in range(1, self.n+1):
+            if i not in self.assignment:
+                if len(self.domains[i]) < min:
+                    min = len(self.domains[i])
+                    var = i
+        
+        return var
     
     def assignment_constistent(self, var, val):
         for as_var, as_val in self.assignment.items():
@@ -44,6 +46,19 @@ class nQueens():
                 return False
         return True
     
+    def forward_checking(self, variable):
+        domains = {var: val[:] for var, val in self.domains.items()}
+
+        for i in range(1, self.n+1):
+            if i != variable and i not in self.assignment:
+                for vals in domains[i][:]:
+                   
+                    if not nQueens.constraints_check(variable, i, self.domains[variable][0], vals):
+                        domains[i].remove(vals)
+                if len(domains[i]) == 0:
+                    return False, domains
+        return True, domains
+
     def AC_3(self, variable):
         q = Queue()
         domains = {var: val[:] for var, val in self.domains.items()}
@@ -90,13 +105,13 @@ class nQueens():
         
         variable = self.select_var()
 
-        for value in self.lcv(variable):
+        for value in self.domains[variable]:
             if value in self.domains[variable] and self.assignment_constistent(variable, value):
                 old_assignment = self.assignment.copy()
                 old_domains = {var: vals[:] for var, vals in self.domains.items()}
                 self.assignment[variable] = value
                 self.domains[variable] = [value]
-                inferences, new_domains = self.AC_3(variable)
+                inferences, new_domains = self.forward_checking(variable)
                 
 
                 if inferences:
