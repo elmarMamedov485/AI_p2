@@ -1,6 +1,6 @@
 from queue import Queue
 
-class nQeens():
+class nQueens():
 
     def __init__(self, n):
         self.n = n
@@ -21,63 +21,64 @@ class nQeens():
             
         for val in self.domains[variable]:
             for neighb in range(1, self.n+1):
-                if(neighb != variable):
+                if neighb != variable and neighb not in self.assignment:
                     for val_neighb in self.domains[neighb]:
-                        if not nQeens.constraints_check(variable, neighb, val, val_neighb):
+                        if not nQueens.constraints_check(variable, neighb, val, val_neighb):
                             val_conflict[val] += 1
 
         return [val for val, _ in (sorted(val_conflict.items(), key = lambda item: item[1]))]
 
     def select_var(self):
-        min = len(self.domains[1])
-        var = 1
+        min_len = float('inf')
+        var = None
 
         for i in range(1, self.n+1):
             if i not in self.assignment:
-                if len(self.domains[i]) < min:
-                    min = len(self.domains[i])
+                if len(self.domains[i]) < min_len:
+                    min_len = len(self.domains[i])
                     var = i
         
         return var
     
     def assignment_constistent(self, var, val):
-        for as_var, as_val in self.assignment:
-            if not nQeens.constraints_check(var, as_var, val, as_val):
+        for as_var, as_val in self.assignment.items():
+            if not nQueens.constraints_check(var, as_var, val, as_val):
                 return False
         return True
     
-    def AC_3(self):
+    def AC_3(self, variable):
         q = Queue()
+        domains = {var: val[:] for var, val in self.domains.items()}
 
         for i in range(1, self.n+1):
-            for j in range(i+1, self.n+1):
-                q.put((i,j))
+            if i != variable and i not in self.assignment:
+                q.put((i,variable))
 
         while not q.empty():
             current_edge = q.get()
             x_i = current_edge[0]
             x_j = current_edge[1]
 
-            if self.revise_of_ac3(x_i, x_j):
-                if len(self.domains[x_i]) == 0:
-                    return False
+            if self.revise_of_ac3(x_i, x_j, domains):
+                if len(domains[x_i]) == 0:
+                    return False, domains
                 
                 for x_k in range(1, self.n+1):
                     if x_k != x_i:
                         q.put((x_k, x_i))
         
-        return True
+        return True, domains
 
-    def revise_of_ac3(self, x_i, x_j):
+    def revise_of_ac3(self, x_i, x_j, domains):
         revised = False
 
-        for x in self.domains[x_i][:]:
+        for x in domains[x_i][:]:
             satisfy = False
-            for y in self.domains[x_j]:
-                if nQeens.constraints_check(x_i, x_j, x, y):
+            for y in domains[x_j]:
+                if nQueens.constraints_check(x_i, x_j, x, y):
                     satisfy = True
             if not satisfy:
-                self.domains[x_i].remove(x)
+                domains[x_i].remove(x)
                 revised = True
         
         return revised
@@ -92,8 +93,26 @@ class nQeens():
         variable = self.select_var()
 
         for value in self.lcv(variable):
-            if self.assignment_constistent(variable, value):
+            if value in self.domains[variable] and self.assignment_constistent(variable, value):
+                old_assignment = {var: val for var, val in self.assignment.items()}
+                old_domains = {var: vals[:] for var, vals in self.domains.items()}
                 self.assignment[variable] = value
+                self.domains[variable] = [value]
+                inferences, new_domains = self.AC_3(variable)
+                
+
+                if inferences:
+                    self.domains = {var: val[:] for var, val in new_domains.items()}
+
+                    result = self.backtrack()
+
+                    if result:
+                        self.domains = {var: val[:] for var, val in old_domains.items()}
+                        self.assignment =  {var: val for var, val in old_assignment.items()}
+                        return result 
+                self.domains = {var: val[:] for var, val in old_domains.items()}
+                self.assignment =  {var: val for var, val in old_assignment.items()}
+        return False                           
 
 
         
