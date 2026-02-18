@@ -1,3 +1,5 @@
+from queue import Queue
+
 class nQeens():
 
     def __init__(self, n):
@@ -38,6 +40,48 @@ class nQeens():
         
         return var
     
+    def assignment_constistent(self, var, val):
+        for as_var, as_val in self.assignment:
+            if not nQeens.constraints_check(var, as_var, val, as_val):
+                return False
+        return True
+    
+    def AC_3(self):
+        q = Queue()
+
+        for i in range(1, self.n+1):
+            for j in range(i+1, self.n+1):
+                q.put((i,j))
+
+        while not q.empty():
+            current_edge = q.get()
+            x_i = current_edge[0]
+            x_j = current_edge[1]
+
+            if self.revise_of_ac3(x_i, x_j):
+                if len(self.domains[x_i]) == 0:
+                    return False
+                
+                for x_k in range(1, self.n+1):
+                    if x_k != x_i:
+                        q.put((x_k, x_i))
+        
+        return True
+
+    def revise_of_ac3(self, x_i, x_j):
+        revised = False
+
+        for x in self.domains[x_i][:]:
+            satisfy = False
+            for y in self.domains[x_j]:
+                if nQeens.constraints_check(x_i, x_j, x, y):
+                    satisfy = True
+            if not satisfy:
+                self.domains[x_i].remove(x)
+                revised = True
+        
+        return revised
+    
     def backtracking_search(self):
         return self.backtrack()
 
@@ -48,7 +92,9 @@ class nQeens():
         variable = self.select_var()
 
         for value in self.lcv(variable):
-            pass
+            if self.assignment_constistent(variable, value):
+                self.assignment[variable] = value
+
 
         
     @staticmethod
