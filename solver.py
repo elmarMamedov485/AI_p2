@@ -159,32 +159,26 @@ class nQueens():
                 self.domains = old_domains
                 self.assignment =  old_assignment
         return False                           
-
-    def check_solution(self):
-        for i in range(1, self.n+1):
-            for j in range(i+1, self.n+1):
-                if not self.constraints_check(i, j, self.assignment[i], self.assignment[j]):
-                    return False
-        return True
     
-    def conflicted_variables(self):
-        conflicted = set()
+    def min_confict(self, max_steps):
+        conflicts_dict = {}
+
+        for var in range(1, self.n + 1):
+            self.assignment[var] =  random.randrange(1, self.n + 1)
+            conflicts_dict[var] = 0
+
         for i in range(1, self.n+1):
             for j in range(i+1, self.n+1):
                 if not nQueens.constraints_check(i, j, self.assignment[i], self.assignment[j]):
-                    conflicted.add(i)
-                    conflicted.add(j)
-        return [var for var in conflicted]
+                    conflicts_dict[i] += 1
+                    conflicts_dict[j] += 1
+                    
 
-    def min_confict(self, max_steps):
-        for var in range(1, self.n + 1):
-            self.assignment[var] =  random.randrange(1, self.n + 1)
-
-        for i in range(1, max_steps + 1):
-            if self.check_solution():
+        for _ in range(1, max_steps + 1):
+            if max(conflicts_dict.values()) == 0:
                 return True, self.assignment
             
-            var = random.choice(self.conflicted_variables())
+            var = random.choice([var for var, val in conflicts_dict.items() if val != 0])
 
             min_c = float('inf')
             best_vals = []
@@ -199,8 +193,18 @@ class nQueens():
                     best_vals = [candidate_val]
                 elif cnt_conflicts == min_c:
                     best_vals.append(candidate_val)
+             
+            for i in range(1, self.n+1):
+                 if i != var and not nQueens.constraints_check(i, var, self.assignment[i], self.assignment[var]):
+                    conflicts_dict[i] -= 1
+                    conflicts_dict[var] -= 1
 
             self.assignment[var] = random.choice(best_vals)
+
+            for i in range(1, self.n+1):
+                 if i != var and not nQueens.constraints_check(i, var, self.assignment[i], self.assignment[var]):
+                    conflicts_dict[i] += 1
+                    conflicts_dict[var] += 1
 
         return False, self.assignment 
         
