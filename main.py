@@ -1,8 +1,8 @@
 from solver import nQueens
 import time
 
-problem = nQueens(99)
+problem = nQueens(1000)
 start = time.time()
-print(problem.backtracking_search())
+print(problem.min_confict(100000000))
 end = time.time()
 print (end - start)

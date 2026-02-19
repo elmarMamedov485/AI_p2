@@ -1,3 +1,4 @@
+import random
 from queue import Queue
 
 class nQueens():
@@ -7,6 +8,7 @@ class nQueens():
         self.assignment = {}
         self.domain = list(range(1, n+1))
         self.domains = {i: self.domain[:] for i in range(1, n+1)}
+        self.presearch = False
 
     def complete_assignment(self):
         if len(self.assignment) < self.n:
@@ -40,7 +42,7 @@ class nQueens():
         
         return var
     
-    def assignment_constistent(self, var, val):
+    def assignment_consistent(self, var, val):
         for as_var, as_val in self.assignment.items():
             if not nQueens.constraints_check(var, as_var, val, as_val):
                 return False
@@ -77,7 +79,32 @@ class nQueens():
                     return False, domains
                 
                 for x_k in range(1, self.n+1):
-                    if x_k != x_i:
+                    if x_k != x_i and x_k not in self.assignment:
+                        q.put((x_k, x_i))
+        
+        return True, domains
+    
+    def AC_3_preseach(self):
+        q = Queue()
+        domains = {var: val[:] for var, val in self.domains.items()}
+
+        for i in range(1, self.n+1):
+            if i not in self.assignment:
+                for j in range(1, self.n + 1):
+                    if j not in self.assignment and i!=j:
+                        q.put((i,j))
+
+        while not q.empty():
+            current_edge = q.get()
+            x_i = current_edge[0]
+            x_j = current_edge[1]
+
+            if self.revise_of_ac3(x_i, x_j, domains):
+                if len(domains[x_i]) == 0:
+                    return False, domains
+                
+                for x_k in range(1, self.n+1):
+                    if x_k != x_i and x_k not in self.assignment:
                         q.put((x_k, x_i))
         
         return True, domains
@@ -103,10 +130,18 @@ class nQueens():
         if self.complete_assignment():
             return self.assignment
         
+        if not self.presearch:
+            inferences, new_domains = self.AC_3_preseach()
+            self.presearch = True
+            if inferences:
+                self.domains = new_domains
+            else: return False, self.assignment
+
+        
         variable = self.select_var()
 
-        for value in self.domains[variable]:
-            if value in self.domains[variable] and self.assignment_constistent(variable, value):
+        for value in self.lcv(variable):
+            if self.assignment_consistent(variable, value):
                 old_assignment = self.assignment.copy()
                 old_domains = {var: vals[:] for var, vals in self.domains.items()}
                 self.assignment[variable] = value
@@ -125,7 +160,49 @@ class nQueens():
                 self.assignment =  old_assignment
         return False                           
 
+    def check_solution(self):
+        for i in range(1, self.n+1):
+            for j in range(i+1, self.n+1):
+                if not self.constraints_check(i, j, self.assignment[i], self.assignment[j]):
+                    return False
+        return True
+    
+    def conflicted_variables(self):
+        conflicted = set()
+        for i in range(1, self.n+1):
+            for j in range(i+1, self.n+1):
+                if not nQueens.constraints_check(i, j, self.assignment[i], self.assignment[j]):
+                    conflicted.add(i)
+                    conflicted.add(j)
+        return [var for var in conflicted]
 
+    def min_confict(self, max_steps):
+        for var in range(1, self.n + 1):
+            self.assignment[var] =  random.randrange(1, self.n + 1)
+
+        for i in range(1, max_steps + 1):
+            if self.check_solution():
+                return True, self.assignment
+            
+            var = random.choice(self.conflicted_variables())
+
+            min_c = float('inf')
+            best_vals = []
+
+            for candidate_val in range(1, self.n + 1):
+                cnt_conflicts = 0
+                for assignment_var, assignment_val in self.assignment.items():
+                    if var != assignment_var and not nQueens.constraints_check(var, assignment_var, candidate_val, assignment_val):
+                        cnt_conflicts += 1
+                if cnt_conflicts < min_c:
+                    min_c = cnt_conflicts
+                    best_vals = [candidate_val]
+                elif cnt_conflicts == min_c:
+                    best_vals.append(candidate_val)
+
+            self.assignment[var] = random.choice(best_vals)
+
+        return False, self.assignment 
         
     @staticmethod
     def constraints_check(variable, neighb, val, val_neighb):
