@@ -10,6 +10,7 @@ class nQueens():
         # Domains for each variable (column)
         self.domains = {i: self.domain[:] for i in range(1, n+1)}
         self.presearch = False  # Used to run AC-3 only once before search
+        self.explored_nodes = []
 
     # Check if all variables have been assigned
     def complete_assignment(self):
@@ -148,6 +149,8 @@ class nQueens():
         if self.complete_assignment():
             return self.assignment
         
+        self.explored_nodes.append(self.assignment.copy())
+        
         # Run AC-3 once before search begins
         if not self.presearch:
             inferences, new_domains = self.AC_3_preseach()
@@ -183,6 +186,8 @@ class nQueens():
                 # Restore previous state (backtrack)
                 self.domains = old_domains
                 self.assignment = old_assignment
+                
+
 
         return False                           
     
@@ -203,6 +208,9 @@ class nQueens():
                     conflicts_dict[j] += 1
 
         for _ in range(1, max_steps + 1):
+
+            self.explored_nodes.append(self.assignment.copy())
+
             # If no conflicts → solution found
             if max(conflicts_dict.values()) == 0:
                 return True, self.assignment
