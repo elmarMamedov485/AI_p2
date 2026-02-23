@@ -5,7 +5,7 @@ MAX = 1000
 MIN = 10
 
 def main():
-    n = int(input("Provide n from [10, 1000]:"))
+    n = int(input("Provide n from [10, 1000]: "))
 
     if n <= MAX and n >= MIN:
         problem = nQueens(n)
@@ -13,51 +13,56 @@ def main():
         choice_file = input("Does input file exist? (y/n): ")
 
         if choice_file == "y":
-            with open("nqueens.txt", "r") as file:
+            with open("input/nqueens.txt", "r") as file:
                 contents = file.readlines()
 
             if len(contents) > n:
                  raise ValueError("Input length is greater than n")
             
-            for i, var in enumerate(contents):
-                var = int(var)
+            for line in contents:
+                line = line.strip()
 
-                if var > 10 or var < 1:
-                    raise ValueError("Incorrect file content")
-                
-                problem.assignment[i] = var
+                if not line or line.startswith("#"):
+                    continue
+
+                if "=" in line:
+                    col, row = line.split("=")
+                    col = int(col.strip())
+                    row = int(row.strip())
+                    problem.assignment[col] = row
+
         elif choice_file != "n" :
             raise ValueError("Wrong input")
         
-        algorithm_choice = input("Choose algorithm (1. backtracking, 2. min-conflict):")
+        algorithm_choice = input("Choose algorithm (1. backtracking, 2. min-conflict): ")
 
         if int(algorithm_choice) == 1:
             start = time.time()
             print(problem.backtracking_search())
             end = time.time()
             time_taken = end - start
-            print ("Time taken: ", time_taken)
+            print ("Time taken: ", time_taken, 'seconds')
         elif int(algorithm_choice) == 2:
             start = time.time()
             print(problem.min_confict(1000000))
             end = time.time()
             time_taken = end - start
-            print ("Time taken: ", time_taken)
+            print ("Time taken: ", time_taken, 'seconds')
         else: 
             raise ValueError("Wrong input")
 
         print("Explored nodes: ", len(problem.explored_nodes))
 
         if int(algorithm_choice) == 1:
-            with open(f"explored-{n}-Queens-backtracking.txt", "w") as file:
-                file.write("Time taken: " + str(time_taken) + "\n")
+            with open(f"output/explored-{n}-Queens-backtracking.txt", "w") as file:
+                file.write("Time taken: " + str(time_taken) + "s\n")
                 for i in problem.explored_nodes:
                     i = str(i)
                     i += "\n"
                     file.write(i)
         elif int(algorithm_choice) == 2:
-            with open(f"explored-{n}-Queens-min-conflict.txt", "w") as file:
-                file.write("Time taken: " + str(time_taken) + "\n")
+            with open(f"output/explored-{n}-Queens-min-conflict.txt", "w") as file:
+                file.write("Time taken: " + str(time_taken) + "s\n")
                 for i in problem.explored_nodes:
                     i = str(i)
                     i += "\n"

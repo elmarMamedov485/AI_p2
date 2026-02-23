@@ -21,20 +21,30 @@ class nQueens():
     def lcv(self, variable):
         val_conflict = {}
 
-        # Initialize conflict counter for each value
-        for i in self.domains[variable]:
-            val_conflict[i] = 0
-            
-        # Count how many neighbor values each value eliminates
         for val in self.domains[variable]:
-            for neighb in range(1, self.n+1):
-                if neighb != variable and neighb not in self.assignment:
-                    for val_neighb in self.domains[neighb]:
-                        if not nQueens.constraints_check(variable, neighb, val, val_neighb):
-                            val_conflict[val] += 1
+            conflict_count = 0
 
-        # Sort by increasing conflict count (least constraining first)
-        return [val for val, _ in sorted(val_conflict.items(), key=lambda item: item[1])]
+            for neighb in range(1, self.n + 1):
+                if neighb != variable and neighb not in self.assignment:
+
+                    d = abs(neighb - variable)
+
+                    # Rows in neighbor that would be attacked
+                    attacked_rows = {
+                        val,          # same row
+                        val + d,      # major diagonal
+                        val - d       # minor diagonal
+                    }
+
+                    for r in attacked_rows:
+                        if r in self.domains[neighb]:
+                            conflict_count += 1
+
+            val_conflict[val] = conflict_count
+
+        #]Least constraining value first
+        return sorted(val_conflict, key=val_conflict.get)
+    
 
     # Minimum Remaining Values heuristic (MRV)
     # Select variable with smallest domain
@@ -151,13 +161,13 @@ class nQueens():
         
         
         # Run AC-3 once before search begins
-        '''if not self.presearch:
+        if not self.presearch:
             inferences, new_domains = self.AC_3_preseach()
             self.presearch = True
             if inferences:
                 self.domains = new_domains
             else:
-                return False, self.assignment'''
+                return False, self.assignment
 
         variable = self.select_var()
         # Try values in LCV order
