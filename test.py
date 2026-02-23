@@ -1,5 +1,4 @@
-# test_nqueens.py
-import unittest
+import pytest
 from solver import nQueens
 
 
@@ -87,4 +86,4 @@ def test_lcv_returns_permutation_of_domain():
 
 
 if __name__ == "__main__":
-    unittest.main(["-q"])
+    pytest.main(["-q"])

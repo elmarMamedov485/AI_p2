@@ -201,7 +201,7 @@ class nQueens():
         return False                           
     
     # Min-Conflicts local search algorithm
-    def min_confict(self, max_steps):
+    def min_conflict(self, max_steps):
         conflicts_dict = {}
 
         # Initialize with random assignment
