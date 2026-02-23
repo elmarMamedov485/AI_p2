@@ -9,6 +9,7 @@ def main():
 
     if n <= MAX and n >= MIN:
         problem = nQueens(n)
+        time_taken = None
         choice_file = input("Does input file exist? (y/n): ")
 
         if choice_file == "y":
@@ -34,22 +35,33 @@ def main():
             start = time.time()
             print(problem.backtracking_search())
             end = time.time()
-            print ("Time taken: ", end - start)
+            time_taken = end - start
+            print ("Time taken: ", time_taken)
         elif int(algorithm_choice) == 2:
             start = time.time()
             print(problem.min_confict(1000000))
             end = time.time()
-            print ("Time taken: ",end - start)
+            time_taken = end - start
+            print ("Time taken: ", time_taken)
         else: 
             raise ValueError("Wrong input")
 
         print("Explored nodes: ", len(problem.explored_nodes))
 
-        with open("explored.txt", "w") as file:
-            for i in problem.explored_nodes:
-                i = str(i)
-                i += "\n"
-                file.write(i)
+        if int(algorithm_choice) == 1:
+            with open(f"explored-{n}-Queens-backtracking.txt", "w") as file:
+                file.write("Time taken: " + str(time_taken) + "\n")
+                for i in problem.explored_nodes:
+                    i = str(i)
+                    i += "\n"
+                    file.write(i)
+        elif int(algorithm_choice) == 2:
+            with open(f"explored-{n}-Queens-min-conflict.txt", "w") as file:
+                file.write("Time taken: " + str(time_taken) + "\n")
+                for i in problem.explored_nodes:
+                    i = str(i)
+                    i += "\n"
+                    file.write(i)
 
     else:
         raise ValueError("Wrong input")  

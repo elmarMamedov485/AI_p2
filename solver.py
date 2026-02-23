@@ -149,21 +149,20 @@ class nQueens():
         if self.complete_assignment():
             return self.assignment
         
-        self.explored_nodes.append(self.assignment.copy())
         
         # Run AC-3 once before search begins
-        if not self.presearch:
+        '''if not self.presearch:
             inferences, new_domains = self.AC_3_preseach()
             self.presearch = True
             if inferences:
                 self.domains = new_domains
             else:
-                return False, self.assignment
+                return False, self.assignment'''
 
         variable = self.select_var()
-
         # Try values in LCV order
         for value in self.lcv(variable):
+            self.explored_nodes.append(((variable, value), self.assignment.copy()))
             if self.assignment_consistent(variable, value):
 
                 # Save state for backtracking
@@ -186,7 +185,7 @@ class nQueens():
                 # Restore previous state (backtrack)
                 self.domains = old_domains
                 self.assignment = old_assignment
-                
+                self.explored_nodes.append("Backtrack ")
 
 
         return False                           
